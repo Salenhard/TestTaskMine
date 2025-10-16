@@ -1,9 +1,7 @@
 package com.example;
 
-import com.google.protobuf.Message;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.EditBox;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -14,6 +12,7 @@ public class MessageScreen extends Screen {
     private TextFieldWidget messageField;
     private ButtonWidget sendButton;
     private final MinecraftClient client;
+
     protected MessageScreen(Text title) {
         super(title);
         this.client = MinecraftClient.getInstance();
@@ -37,8 +36,7 @@ public class MessageScreen extends Screen {
         sendButton = ButtonWidget.builder(Text.literal("Отправить"), button -> {
                     String message = messageField.getText();
                     if (!message.isEmpty() && client.player != null) {
-                        client.player.sendMessage(Text.literal("Вы отправили: " + message), false);
-                        messageField.setText("");
+                        sendMessage(message);
                     }
                 })
                 .position(this.width / 2 - 50, this.height / 2 + 20)
@@ -58,4 +56,8 @@ public class MessageScreen extends Screen {
         messageField.render(context, mouseX, mouseY, delta);
     }
 
+    public void sendMessage(String message) {
+        client.player.sendMessage(Text.literal("Вы отправили: " + message), false);
+        messageField.setText("");
+    }
 }
