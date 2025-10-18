@@ -1,7 +1,5 @@
 package com.example.entity;
-
-import jakarta.persistence.*;
-
+import javax.persistence.*;
 import java.util.UUID;
 
 @Entity
@@ -17,7 +15,6 @@ public class PlayerMessage {
     @Column(name = "text", nullable = false, length = 256)
     private String text;
 
-    // Конструкторы, геттеры и сеттеры
     public PlayerMessage() {}
 
     public PlayerMessage(UUID uuid, String text) {

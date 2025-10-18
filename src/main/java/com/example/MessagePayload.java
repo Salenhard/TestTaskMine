@@ -9,8 +9,7 @@ import net.minecraft.util.Identifier;
 
 public record MessagePayload(byte[] protobufData) implements CustomPayload {
     public static final Identifier MESSAGE_PAYLOAD_ID = Identifier.of(TestTask.MOD_ID, "protobuf_message");
-    public static final CustomPayload.Id<MessagePayload> ID = new CustomPayload.Id<>(MESSAGE_PAYLOAD_ID);
-
+    public static final Id<MessagePayload> ID = new Id<>(MESSAGE_PAYLOAD_ID);
     public static final PacketCodec<RegistryByteBuf, MessagePayload> CODEC = new PacketCodec<>() {
         @Override
         public MessagePayload decode(RegistryByteBuf buf) {
@@ -32,12 +31,10 @@ public record MessagePayload(byte[] protobufData) implements CustomPayload {
         return ID;
     }
 
-    // Helper method to create payload from protobuf message
     public static MessagePayload fromProtobuf(Message message) {
         return new MessagePayload(message.toByteArray());
     }
 
-    // Helper method to parse protobuf message from payload
     public Message toProtobuf() throws Exception {
         return MessageProtos.Message.parseFrom(protobufData);
     }

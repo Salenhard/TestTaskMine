@@ -1,38 +1,42 @@
 package com.example;
 
-import com.google.protobuf.Message;
-import com.google.protobuf.MessageLite;
+import com.example.entity.PlayerMessage;
+import com.example.proto.MessageProtos;
+import com.example.repository.MessageRepository;
+import com.google.protobuf.InvalidProtocolBufferException;
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
+
 public class TestTask implements ModInitializer {
-	public static final String MOD_ID = "testtask";
-    public static final Identifier MESSAGE_PACKET_ID = new Identifier(MOD_ID, "message_packet");
-	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	@Override
+    public static final String MOD_ID = "testtask";
+    public static final Logger log = LoggerFactory.getLogger(MOD_ID);
+    private final MessageRepository repository = new MessageRepository();
 
-	public void onInitialize() {
-        ServerPlayNetworking.registerGlobalReceiver(MESSAGE_PACKET_ID, (server, player, handler, buffer, sender) -> {
-            byte[] packetData = buffer.readByteArray(); // Читаем массив байтов из пакета
-            server.execute(() -> {
-                // Обработка на главном игровом потоке
+    @Override
+
+    public void onInitialize() {
+        PayloadTypeRegistry.playC2S().register(MessagePayload.ID, MessagePayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(MessagePayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
                 try {
-                    Message protobufMessage;
-
-                    String text = protobufMessage.getText();
-                    UUID playerUuid = player.getUuid();
-
-                    // Сохранение в базу данных
-                    MessageRepository repository = new MessageRepository();
-                    repository.saveMessage(playerUuid, text);
-
+                    log.debug("Received message");
+                    MessageProtos.Message message = MessageProtos.Message.parseFrom(payload.protobufData());
+                    UUID playerUuid = context.player().getUuid();
+                    String text = message.getText();
+                    PlayerMessage playerMessage = new PlayerMessage(playerUuid, text);
+                    repository.saveMessage(playerMessage);
+                    log.debug("Message is saved");
                 } catch (InvalidProtocolBufferException e) {
-                    e.printStackTrace();
+                    log.error("Invalid proto buff");
+                    throw new RuntimeException(e);
                 }
             });
         });
-	}
+    }
 }
